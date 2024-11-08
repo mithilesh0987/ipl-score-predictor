@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Score Predictor</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>IPL Score Predictor</h1>
+        
+        <!-- Prediction Form -->
+        <form id="predictForm">
+            <div class="form-group">
+                <label for="venue">Select Venue:</label>
+                <select id="venue" name="venue" required>
+                    <!-- Dynamically populate the options -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="batting_team">Select Batting Team:</label>
+                <select id="batting_team" name="batting_team" required>
+                    <!-- Dynamically populate the options -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bowling_team">Select Bowling Team:</label>
+                <select id="bowling_team" name="bowling_team" required>
+                    <!-- Dynamically populate the options -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="striker">Select Striker:</label>
+                <select id="striker" name="striker" required>
+                    <!-- Dynamically populate the options -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bowler">Select Bowler:</label>
+                <select id="bowler" name="bowler" required>
+                    <!-- Dynamically populate the options -->
+                </select>
+            </div>
+            
+            <button type="submit">Predict Score</button>
+        </form>
+
+        <h3>Predicted Score: <span id="predictedScore">N/A</span></h3>
+        <div id="errorMessage"></div>
+    </div>
+
+    <!-- Script to handle form submission and data interaction -->
+    <script>
+        document.getElementById("predictForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const venue = document.getElementById("venue").value;
+            const batting_team = document.getElementById("batting_team").value;
+            const bowling_team = document.getElementById("bowling_team").value;
+            const striker = document.getElementById("striker").value;
+            const bowler = document.getElementById("bowler").value;
+
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    venue,
+                    batting_team,
+                    bowling_team,
+                    striker,
+                    bowler
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.predicted_score) {
+                document.getElementById("predictedScore").textContent = data.predicted_score;
+                document.getElementById("errorMessage").textContent = '';
+            } else {
+                document.getElementById("predictedScore").textContent = "Error: Unable to predict score.";
+                document.getElementById("errorMessage").textContent = data.error || "An error occurred. Please try again!";
+            }
+        });
+
+        // Function to dynamically load the dropdown options
+        async function loadDropdowns() {
+            const response = await fetch('/dropdowns');
+            const data = await response.json();
+
+            const venueSelect = document.getElementById('venue');
+            const battingTeamSelect = document.getElementById('batting_team');
+            const bowlingTeamSelect = document.getElementById('bowling_team');
+            const strikerSelect = document.getElementById('striker');
+            const bowlerSelect = document.getElementById('bowler');
+
+            data.venues.forEach(venue => {
+                let option = document.createElement('option');
+                option.value = venue;
+                option.textContent = venue;
+                venueSelect.appendChild(option);
+            });
+
+            data.battingTeams.forEach(team => {
+                let option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                battingTeamSelect.appendChild(option);
+            });
+
+            data.bowlingTeams.forEach(team => {
+                let option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                bowlingTeamSelect.appendChild(option);
+            });
+
+            data.strikers.forEach(striker => {
+                let option = document.createElement('option');
+                option.value = striker;
+                option.textContent = striker;
+                strikerSelect.appendChild(option);
+            });
+
+            data.bowlers.forEach(bowler => {
+                let option = document.createElement('option');
+                option.value = bowler;
+                option.textContent = bowler;
+                bowlerSelect.appendChild(option);
+            });
+        }
+
+        // Call the function to load dropdown options when the page loads
+        window.onload = loadDropdowns;
+    </script>
+</body>
+</html>
